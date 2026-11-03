@@ -112,7 +112,8 @@ class BPE {
   }
 
   // Split one word into tokens by repeating every merge, in the order they were learned
-  // This is inefficient. You could remember each word that has been tokenized in a "cache"
+  // This is inefficient when you are tokenizing large blocks of text with repeated words.
+  // You could remember each word that has been tokenized in a "cache"
   tokenizeWord(word) {
     let tokens = word.split('');
     for (let pair of this.merges) {
