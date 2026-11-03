@@ -2,21 +2,22 @@
 // https://github.com/Programming-from-A-to-Z/A2Z-F26
 //
 // Byte Pair Encoding (BPE) tokenizer
-// Start with single characters, then merge the most common pair of tokens, over and over
+// Start with single characters, merge the most common token pairs
 
 class BPE {
   constructor() {
-    // Every token the tokenizer knows, a token's id is its index in this array
+    // All the tokens (id is index into array)
     this.vocab = [];
-    // Every merge, in order: ['t', 'h'] means t + h becomes th
+    // All the merges (in order!)
     this.merges = [];
-    // Every different word in the text, split into tokens, and how many times it appears
+    // Every word in the text, split into tokens and counted:
+    // {tokens: [' ', 't', 'h', 'e'], count: 100}
     this.words = [];
   }
 
-  // Split text into words, keeping everything (capital letters, punctuation, spaces, new lines)
-  // A word keeps the space in front of it, and anything that isn't a letter is on its own:
-  // 'To be, or not' becomes ['To', ' be', ',', ' or', ' not']
+  // Split text into words, keeping everything
+  // A word is any sequence of letters (with space in front)
+  // anything that isn't a letter is its own word.
   splitWords(text) {
     return text.match(/ ?[A-Za-z]+|[^A-Za-z]/g);
   }
@@ -29,7 +30,7 @@ class BPE {
     }
   }
 
-  // Get ready to learn: count the words, and start with single characters
+  // Count all the word frequencies! (Simple text concordance)
   start(text) {
     // Count every word, so each different word only has to be looked at once
     let counts = {};
@@ -45,7 +46,7 @@ class BPE {
       this.words.push({ tokens: word.split(''), count: counts[word] });
     }
 
-    // The starting vocabulary is every character in the text (just like TinyGPT!)
+    // The starting vocabulary is every character in the text
     this.vocab = Array.from(new Set(text));
     this.vocab.sort();
   }
@@ -57,7 +58,7 @@ class BPE {
     // Together they become a new token!
     this.merges.push(pair);
     this.vocab.push(pair[0] + pair[1]);
-    // Merge that pair everywhere it appears
+    // Re-tokenize every word with the new token
     for (let word of this.words) {
       word.tokens = this.merge(word.tokens, pair);
     }
@@ -69,19 +70,18 @@ class BPE {
     for (let word of this.words) {
       for (let i = 0; i < word.tokens.length - 1; i++) {
         // The pair 't' then 'h' gets the key 't,h'
-        // (Only letters and spaces get merged, so a comma is never part of a pair)
         let key = word.tokens[i] + ',' + word.tokens[i + 1];
         if (counts[key] === undefined) {
           counts[key] = 0;
         }
-        // A word that appears 100 times counts its pairs 100 times
+        // A word that appears N times counts the token N times
         counts[key] += word.count;
       }
     }
     return counts;
   }
 
-  // The pair that appears most often: ['t', 'h']
+  // Find the most common pair of tokens!
   mostCommonPair() {
     let counts = this.countPairs();
     let best = '';
@@ -95,7 +95,7 @@ class BPE {
     return best.split(',');
   }
 
-  // Replace a pair with one token: merge([' ', 't', 'h', 'e'], ['t', 'h']) is [' ', 'th', 'e']
+  // Replace any token pairs with then new merged token
   merge(tokens, pair) {
     let merged = [];
     let i = 0;
@@ -112,8 +112,7 @@ class BPE {
   }
 
   // Split one word into tokens by repeating every merge, in the order they were learned
-  // (This happens again every time a word shows up. To make it faster, you could remember
-  // how each word was split the first time and look it up after that: a "cache.")
+  // This is inefficient. You could remember each word that has been tokenized in a "cache"
   tokenizeWord(word) {
     let tokens = word.split('');
     for (let pair of this.merges) {
@@ -122,7 +121,7 @@ class BPE {
     return tokens;
   }
 
-  // Text into tokens: 'The sea!' becomes ['The', ' sea', '!']
+  // Turn new text into tokens!
   tokenize(text) {
     let tokens = [];
     for (let word of this.splitWords(text)) {
@@ -133,7 +132,7 @@ class BPE {
     return tokens;
   }
 
-  // Text into token ids: a token's id is its index in the vocab array
+  // Turn text into token ids!
   encode(text) {
     let ids = [];
     for (let token of this.tokenize(text)) {
@@ -142,7 +141,7 @@ class BPE {
     return ids;
   }
 
-  // Token ids back into text
+  // Turn token ids back into text!
   decode(ids) {
     let text = '';
     for (let id of ids) {
