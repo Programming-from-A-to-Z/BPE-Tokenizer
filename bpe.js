@@ -45,8 +45,6 @@ class BPE {
       this.words.push({ tokens: word.split(''), count: counts[word] });
     }
 
-    console.log(this.words);
-
     // The starting vocabulary is every character in the text (just like TinyGPT!)
     this.vocab = Array.from(new Set(text));
     this.vocab.sort();
