@@ -16,7 +16,7 @@ class BPE {
   }
 
   // Split text into words, keeping everything
-  // A word is any sequence of letters (with space in front)
+  // A word is any sequence of letters (with optional space in front)
   // anything that isn't a letter is its own word.
   splitWords(text) {
     return text.match(/ ?[A-Za-z]+|[^A-Za-z]/g);
@@ -30,7 +30,7 @@ class BPE {
     }
   }
 
-  // Count all the word frequencies! (Simple text concordance)
+  // Count all the word frequencies! (Simple text concordance) and set up the starting vocabulary
   start(text) {
     // Count every word, so each different word only has to be looked at once
     let counts = {};
@@ -74,7 +74,7 @@ class BPE {
         if (counts[key] === undefined) {
           counts[key] = 0;
         }
-        // A word that appears N times counts the token N times
+        // A word that appears N times counts the pair N times
         counts[key] += word.count;
       }
     }
@@ -95,7 +95,7 @@ class BPE {
     return best.split(',');
   }
 
-  // Replace any token pairs with then new merged token
+  // Replace any token pairs with the new merged token
   merge(tokens, pair) {
     let merged = [];
     let i = 0;
